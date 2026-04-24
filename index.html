@@ -1,81 +1,410 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Build the Family Tree | Educational Adventure</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Oilaviy Shajara Daraxti</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --error: #ef4444;
+            --success: #22c55e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+
+        header h1 {
+            color: var(--primary);
+            font-size: 1.75rem;
+        }
+
+        main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        #gallery {
+            width: 320px;
+            background: #ffffff;
+            border-right: 1px solid var(--border-color);
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        #gallery h3 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-muted);
+            border-bottom: 2px solid #eef2f6;
+            padding-bottom: 4px;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .gallery-grid.labels-only {
+            grid-template-columns: 1fr;
+        }
+
+        /* Cards */
+        .person-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .person-card:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .person-card.photo {
+            width: 100%;
+            aspect-ratio: 4/5;
+        }
+
+        .person-card.name {
+            padding: 8px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: #eff6ff;
+            color: var(--primary);
+        }
+
+        .person-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+        }
+
+        .person-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        /* Tree Canvas */
+        #tree-canvas {
+            flex: 1;
+            overflow: auto;
+            background: radial-gradient(circle, #ffffff 0%, #f1f5f9 100%);
+            position: relative;
+            padding: 3rem;
+        }
+
+        #tree-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5rem;
+            min-width: 1000px;
+        }
+
+        .tree-level {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            width: 100%;
+        }
+
+        .group {
+            display: flex;
+            gap: 2rem;
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px dashed var(--border-color);
+        }
+
+        .tree-node {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 8px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            z-index: 2;
+        }
+
+        .tree-node.thin {
+            flex-direction: column;
+            padding: 6px;
+        }
+
+        /* Drop Zones */
+        .drop-zone {
+            border: 2px dashed #e2e8f0;
+            border-radius: 8px;
+            background: #f8fafc;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-zone {
+            width: 70px;
+            height: 90px;
+        }
+
+        .name-zone {
+            width: 100px;
+            height: 40px;
+        }
+
+        .tree-node.thin .name-zone {
+            width: 80px;
+            height: 35px;
+        }
+
+        .drop-zone.drag-over {
+            border-color: var(--primary);
+            background: #ebf5ff;
+            transform: scale(1.05);
+        }
+
+        .drop-zone.occupied {
+            border-style: solid;
+            border-color: transparent;
+            background: transparent;
+        }
+
+        .drop-zone.error {
+            border-color: var(--error);
+            animation: shake 0.4s;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-4px);
+            }
+
+            75% {
+                transform: translateX(4px);
+            }
+        }
+
+        /* Success Footer */
+        footer {
+            background: white;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .primary-btn {
+            background: var(--primary);
+            color: white;
+            padding: 10px 30px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        #message-area {
+            font-weight: 600;
+            font-size: 0.9rem;
+            min-height: 1.2rem;
+        }
+
+        #message-area.error {
+            color: var(--error);
+        }
+
+        /* SVG Lines */
+        #tree-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .tree-line {
+            stroke: #cbd5e1;
+            stroke-width: 2;
+            fill: none;
+            opacity: 0.5;
+        }
+
+        .tree-line.active {
+            stroke: var(--primary);
+            opacity: 1;
+            stroke-width: 3;
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: draw 2s forwards;
+        }
+
+        @keyframes draw {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* Success Overlay */
+        #success-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        #success-overlay.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-content h2 {
+            color: var(--success);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 
 <body>
     <div id="app">
         <header>
-            <h1>Build the Family Tree</h1>
-            <p>Match the <b>Photos</b> and <b>Names</b> of family members to their correct positions!</p>
+            <h1>Oilaviy Shajara Daraxtini Quring</h1>
+            <p>Oila a'zolarining rasmlari va nomlarini mos o'rinlarga joylashtiring!</p>
         </header>
 
         <main>
+            <!-- Sidebar Gallery -->
             <aside id="gallery">
-                <section>
-                    <h3>1. Photos</h3>
-                    <div id="photo-list" class="gallery-grid"></div>
-                </section>
-                <section style="margin-top: 2rem;">
-                    <h3>2. Names</h3>
-                    <div id="name-list" class="gallery-grid labels-only"></div>
-                </section>
+                <h3>1. Rasmlar</h3>
+                <div id="photo-list" class="gallery-grid">
+                    <!-- Photos will be injected here -->
+                </div>
+
+                <h3>2. Nomlar</h3>
+                <div id="name-list" class="gallery-grid labels-only">
+                    <!-- Names will be injected here -->
+                </div>
             </aside>
 
-            <section id="tree-canvas">
+            <!-- Tree Canvas -->
+            <div id="tree-canvas">
+                <svg id="tree-lines"></svg>
+
                 <div id="tree-container">
                     <!-- Level 0: Great Grandparents -->
                     <div class="tree-level level-0">
-                        <div class="tree-node">
-                            <div class="drop-zone photo-zone" data-role="great_grandfather" data-type="photo"></div>
-                            <div class="drop-zone name-zone" data-role="great_grandfather" data-type="name"></div>
+                        <div class="tree-node" data-role="great_grandfather">
+                            <div class="drop-zone photo-zone" data-type="photo" data-role="great_grandfather"></div>
+                            <div class="drop-zone name-zone" data-type="name" data-role="great_grandfather"></div>
                         </div>
-                        <div class="tree-node">
-                            <div class="drop-zone photo-zone" data-role="great_grandmother" data-type="photo"></div>
-                            <div class="drop-zone name-zone" data-role="great_grandmother" data-type="name"></div>
+                        <div class="tree-node" data-role="great_grandmother">
+                            <div class="drop-zone photo-zone" data-type="photo" data-role="great_grandmother"></div>
+                            <div class="drop-zone name-zone" data-type="name" data-role="great_grandmother"></div>
                         </div>
                     </div>
 
                     <!-- Level 1: Grandparents -->
                     <div class="tree-level level-1">
-                        <div class="tree-node">
-                            <div class="drop-zone photo-zone" data-role="grandfather" data-type="photo"></div>
-                            <div class="drop-zone name-zone" data-role="grandfather" data-type="name"></div>
+                        <div class="tree-node" data-role="grandfather">
+                            <div class="drop-zone photo-zone" data-type="photo" data-role="grandfather"></div>
+                            <div class="drop-zone name-zone" data-type="name" data-role="grandfather"></div>
                         </div>
-                        <div class="tree-node">
-                            <div class="drop-zone photo-zone" data-role="grandmother" data-type="photo"></div>
-                            <div class="drop-zone name-zone" data-role="grandmother" data-type="name"></div>
+                        <div class="tree-node" data-role="grandmother">
+                            <div class="drop-zone photo-zone" data-type="photo" data-role="grandmother"></div>
+                            <div class="drop-zone name-zone" data-type="name" data-role="grandmother"></div>
                         </div>
                     </div>
 
                     <!-- Level 2: Parents & Relatives -->
                     <div class="tree-level level-2">
                         <div class="group">
-                            <div class="tree-node">
-                                <div class="drop-zone photo-zone" data-role="father" data-type="photo"></div>
-                                <div class="drop-zone name-zone" data-role="father" data-type="name"></div>
+                            <div class="tree-node" data-role="father">
+                                <div class="drop-zone photo-zone" data-type="photo" data-role="father"></div>
+                                <div class="drop-zone name-zone" data-type="name" data-role="father"></div>
                             </div>
-                            <div class="tree-node">
-                                <div class="drop-zone photo-zone" data-role="mother" data-type="photo"></div>
-                                <div class="drop-zone name-zone" data-role="mother" data-type="name"></div>
+                            <div class="tree-node" data-role="mother">
+                                <div class="drop-zone photo-zone" data-type="photo" data-role="mother"></div>
+                                <div class="drop-zone name-zone" data-type="name" data-role="mother"></div>
                             </div>
                         </div>
                         <div class="group">
-                            <div class="tree-node">
-                                <div class="drop-zone photo-zone" data-role="uncle" data-type="photo"></div>
-                                <div class="drop-zone name-zone" data-role="uncle" data-type="name"></div>
+                            <div class="tree-node" data-role="uncle">
+                                <div class="drop-zone photo-zone" data-type="photo" data-role="uncle"></div>
+                                <div class="drop-zone name-zone" data-type="name" data-role="uncle"></div>
                             </div>
-                            <div class="tree-node">
-                                <div class="drop-zone photo-zone" data-role="aunt" data-type="photo"></div>
-                                <div class="drop-zone name-zone" data-role="aunt" data-type="name"></div>
+                            <div class="tree-node" data-role="aunt">
+                                <div class="drop-zone photo-zone" data-type="photo" data-role="aunt"></div>
+                                <div class="drop-zone name-zone" data-type="name" data-role="aunt"></div>
                             </div>
                         </div>
                     </div>
@@ -83,47 +412,45 @@
                     <!-- Level 3: Children & Cousins -->
                     <div class="tree-level level-3">
                         <div class="group children">
-                            <div class="tree-node thin">
-                                <div class="drop-zone photo-zone" data-role="older_brother" data-type="photo"></div>
-                                <div class="drop-zone name-zone" data-role="older_brother" data-type="name"></div>
+                            <div class="tree-node thin" data-role="older_brother">
+                                <div class="drop-zone photo-zone" data-type="photo" data-role="older_brother"></div>
+                                <div class="drop-zone name-zone" data-type="name" data-role="older_brother"></div>
                             </div>
-                            <div class="tree-node thin">
-                                <div class="drop-zone photo-zone" data-role="older_sister" data-type="photo"></div>
-                                <div class="drop-zone name-zone" data-role="older_sister" data-type="name"></div>
+                            <div class="tree-node thin" data-role="older_sister">
+                                <div class="drop-zone photo-zone" data-type="photo" data-role="older_sister"></div>
+                                <div class="drop-zone name-zone" data-type="name" data-role="older_sister"></div>
                             </div>
-                            <div class="tree-node thin">
-                                <div class="drop-zone photo-zone" data-role="younger_brother" data-type="photo"></div>
-                                <div class="drop-zone name-zone" data-role="younger_brother" data-type="name"></div>
+                            <div class="tree-node thin" data-role="younger_brother">
+                                <div class="drop-zone photo-zone" data-type="photo" data-role="younger_brother"></div>
+                                <div class="drop-zone name-zone" data-type="name" data-role="younger_brother"></div>
                             </div>
-                            <div class="tree-node thin">
-                                <div class="drop-zone photo-zone" data-role="younger_sister" data-type="photo"></div>
-                                <div class="drop-zone name-zone" data-role="younger_sister" data-type="name"></div>
+                            <div class="tree-node thin" data-role="younger_sister">
+                                <div class="drop-zone photo-zone" data-type="photo" data-role="younger_sister"></div>
+                                <div class="drop-zone name-zone" data-type="name" data-role="younger_sister"></div>
                             </div>
-                            <div class="tree-node thin">
-                                <div class="drop-zone photo-zone" data-role="baby" data-type="photo"></div>
-                                <div class="drop-zone name-zone" data-role="baby" data-type="name"></div>
+                            <div class="tree-node thin" data-role="baby">
+                                <div class="drop-zone photo-zone" data-type="photo" data-role="baby"></div>
+                                <div class="drop-zone name-zone" data-type="name" data-role="baby"></div>
                             </div>
                         </div>
                         <div class="group cousins">
-                            <div class="tree-node">
-                                <div class="drop-zone photo-zone" data-role="cousin_male" data-type="photo"></div>
-                                <div class="drop-zone name-zone" data-role="cousin_male" data-type="name"></div>
+                            <div class="tree-node thin" data-role="cousin_male">
+                                <div class="drop-zone photo-zone" data-type="photo" data-role="cousin_male"></div>
+                                <div class="drop-zone name-zone" data-type="name" data-role="cousin_male"></div>
                             </div>
-                            <div class="tree-node">
-                                <div class="drop-zone photo-zone" data-role="cousin_female" data-type="photo"></div>
-                                <div class="drop-zone name-zone" data-role="cousin_female" data-type="name"></div>
+                            <div class="tree-node thin" data-role="cousin_female">
+                                <div class="drop-zone photo-zone" data-type="photo" data-role="cousin_female"></div>
+                                <div class="drop-zone name-zone" data-type="name" data-role="cousin_female"></div>
                             </div>
                         </div>
                     </div>
-
-                    <svg id="tree-lines"></svg>
                 </div>
-            </section>
+            </div>
         </main>
 
         <footer>
-            <button id="btn-finish" class="primary-btn">Finish & Validate</button>
             <div id="message-area"></div>
+            <button id="btn-finish" class="primary-btn">Yakunlash va Tekshirish</button>
         </footer>
     </div>
 
@@ -138,7 +465,216 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        const members = [
+            { id: 'great_grandfather', name: 'Katta Bobo', img: 'assets/images/great_grandfather.png' },
+            { id: 'great_grandmother', name: 'Katta Buvi', img: 'assets/images/great_grandmother.png' },
+            { id: 'grandfather', name: 'Bobo', img: 'assets/images/grandfather.png' },
+            { id: 'grandmother', name: 'Buvi', img: 'assets/images/grandmother.png' },
+            { id: 'father', name: 'Ota / Dada', img: 'assets/images/father.png' },
+            { id: 'mother', name: 'Ona / Oyi', img: 'assets/images/mother.png' },
+            { id: 'uncle', name: 'Amaki', img: 'assets/images/uncle.png' },
+            { id: 'aunt', name: 'Amma', img: 'assets/images/aunt.png' },
+            { id: 'older_brother', name: 'Aka', img: 'assets/images/older_brother.png' },
+            { id: 'older_sister', name: 'Opa', img: 'assets/images/older_sister.png' },
+            { id: 'younger_brother', name: 'Uka', img: 'assets/images/younger_brother.png' },
+            { id: 'younger_sister', name: 'Singil', img: 'assets/images/younger_sister.png' },
+            { id: 'cousin_male', name: 'Jiyan (O\'g\'il)', img: 'assets/images/cousin_male.png' },
+            { id: 'cousin_female', name: 'Jiyan (Qiz)', img: 'assets/images/cousin_female.png' },
+            { id: 'baby', name: 'Chaqaloq', img: 'assets/images/baby.png' }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initGallery();
+            initDragAndDrop();
+            initValidation();
+        });
+
+        function initGallery() {
+            const photoList = document.getElementById('photo-list');
+            const nameList = document.getElementById('name-list');
+
+            const photoMembers = [...members].sort(() => Math.random() - 0.5);
+            const nameMembers = [...members].sort(() => Math.random() - 0.5);
+
+            photoMembers.forEach(m => {
+                const card = createCard(m, 'photo');
+                photoList.appendChild(card);
+            });
+
+            nameMembers.forEach(m => {
+                const card = createCard(m, 'name');
+                nameList.appendChild(card);
+            });
+        }
+
+        function createCard(member, type) {
+            const div = document.createElement('div');
+            div.className = `person-card ${type}`;
+            div.draggable = true;
+            div.dataset.id = member.id;
+            div.dataset.type = type;
+
+            if (type === 'photo') {
+                div.innerHTML = `<img src="${member.img}" alt="Portrait">`;
+            } else {
+                div.innerHTML = member.name;
+            }
+
+            div.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('id', member.id);
+                e.dataTransfer.setData('type', type);
+                div.classList.add('dragging');
+            });
+
+            div.addEventListener('dragend', () => div.classList.remove('dragging'));
+
+            return div;
+        }
+
+        function initDragAndDrop() {
+            const zones = document.querySelectorAll('.drop-zone');
+
+            zones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('drag-over');
+                });
+
+                zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('drag-over');
+
+                    const id = e.dataTransfer.getData('id');
+                    const type = e.dataTransfer.getData('type');
+
+                    if (zone.dataset.type !== type) return;
+
+                    const draggedCard = document.querySelector(`.person-card.dragging`);
+                    if (!draggedCard) return;
+
+                    const existing = zone.querySelector('.person-card');
+                    if (existing) {
+                        const galleryId = type === 'photo' ? 'photo-list' : 'name-list';
+                        document.getElementById(galleryId).appendChild(existing);
+                    }
+
+                    zone.appendChild(draggedCard);
+                    zone.classList.add('occupied');
+                });
+            });
+
+            ['photo-list', 'name-list'].forEach(listId => {
+                const list = document.getElementById(listId);
+                list.addEventListener('dragover', (e) => e.preventDefault());
+                list.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const type = e.dataTransfer.getData('type');
+
+                    if ((listId === 'photo-list' && type === 'photo') ||
+                        (listId === 'name-list' && type === 'name')) {
+                        const card = document.querySelector(`.person-card.dragging`);
+                        if (card) {
+                            list.appendChild(card);
+                            document.querySelectorAll('.drop-zone').forEach(z => {
+                                if (!z.querySelector('.person-card')) z.classList.remove('occupied');
+                            });
+                        }
+                    }
+                });
+            });
+        }
+
+        function initValidation() {
+            const btn = document.getElementById('btn-finish');
+            const messageArea = document.getElementById('message-area');
+
+            btn.addEventListener('click', () => {
+                const zones = document.querySelectorAll('.drop-zone');
+                let allCorrect = true;
+                let anyEmpty = false;
+
+                zones.forEach(zone => {
+                    zone.classList.remove('error');
+                    const card = zone.querySelector('.person-card');
+                    if (!card) {
+                        anyEmpty = true;
+                        allCorrect = false;
+                        zone.classList.add('error');
+                    } else if (card.dataset.id !== zone.dataset.role) {
+                        allCorrect = false;
+                        zone.classList.add('error');
+                    }
+                });
+
+                if (allCorrect) {
+                    showSuccess();
+                } else {
+                    messageArea.textContent = anyEmpty ? "❌ Ayrim kataklar bo'sh!" : "❌ Joylashtirish noto'g'ri. Qaytadan urinib ko'ring!";
+                    messageArea.className = 'error';
+                    setTimeout(() => { messageArea.textContent = ""; }, 4000);
+                }
+            });
+        }
+
+        function showSuccess() {
+            const treeCanvas = document.getElementById('tree-canvas');
+            treeCanvas.classList.add('magic-bg');
+            drawGrowingLines();
+            setTimeout(() => {
+                document.getElementById('success-overlay').classList.remove('hidden');
+            }, 4500);
+        }
+
+        async function drawGrowingLines() {
+            const container = document.getElementById('tree-container');
+            const rect = container.getBoundingClientRect();
+            const getCenter = el => {
+                const r = el.getBoundingClientRect();
+                return { x: r.left - rect.left + r.width / 2, y: r.top - rect.top + r.height / 2 };
+            };
+
+            const wait = ms => new Promise(res => setTimeout(res, ms));
+
+            const ggf = document.querySelector('.level-0 .tree-node:nth-child(1)');
+            const ggm = document.querySelector('.level-0 .tree-node:nth-child(2)');
+            const gf = document.querySelector('.level-1 .tree-node:nth-child(1)');
+            const gm = document.querySelector('.level-1 .tree-node:nth-child(2)');
+
+            const father = document.querySelector('.level-2 .group:nth-child(1) .tree-node:nth-child(1)');
+            const mother = document.querySelector('.level-2 .group:nth-child(1) .tree-node:nth-child(2)');
+            const uncle = document.querySelector('.level-2 .group:nth-child(2) .tree-node:nth-child(1)');
+            const aunt = document.querySelector('.level-2 .group:nth-child(2) .tree-node:nth-child(2)');
+
+            const children = document.querySelectorAll('.level-3 .group.children .tree-node');
+            const cousins = document.querySelectorAll('.level-3 .group.cousins .tree-node');
+
+            addLine(getCenter(ggf), getCenter(gf));
+            addLine(getCenter(ggm), getCenter(gf));
+            await wait(800);
+
+            addLine(getCenter(gf), getCenter(father));
+            addLine(getCenter(gm), getCenter(father));
+            addLine(getCenter(gf), getCenter(uncle));
+            addLine(getCenter(gm), getCenter(uncle));
+            await wait(800);
+
+            children.forEach(child => addLine(getCenter(mother), getCenter(child)));
+            cousins.forEach(cousin => addLine(getCenter(aunt), getCenter(cousin)));
+        }
+
+        function addLine(p1, p2) {
+            const svg = document.getElementById('tree-lines');
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const midY = (p1.y + p2.y) / 2;
+            const d = `M ${p1.x} ${p1.y} C ${p1.x} ${midY}, ${p2.x} ${midY}, ${p2.x} ${p2.y}`;
+            line.setAttribute("d", d);
+            line.setAttribute("class", "tree-line active");
+            svg.appendChild(line);
+        }
+    </script>
 </body>
 
 </html>
