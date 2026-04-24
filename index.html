@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build the Family Tree | Educational Adventure</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <h1>Build the Family Tree</h1>
+            <p>Match the <b>Photos</b> and <b>Names</b> of family members to their correct positions!</p>
+        </header>
+
+        <main>
+            <aside id="gallery">
+                <section>
+                    <h3>1. Photos</h3>
+                    <div id="photo-list" class="gallery-grid"></div>
+                </section>
+                <section style="margin-top: 2rem;">
+                    <h3>2. Names</h3>
+                    <div id="name-list" class="gallery-grid labels-only"></div>
+                </section>
+            </aside>
+
+            <section id="tree-canvas">
+                <div id="tree-container">
+                    <!-- Level 0: Great Grandparents -->
+                    <div class="tree-level level-0">
+                        <div class="tree-node">
+                            <div class="drop-zone photo-zone" data-role="great_grandfather" data-type="photo"></div>
+                            <div class="drop-zone name-zone" data-role="great_grandfather" data-type="name"></div>
+                        </div>
+                        <div class="tree-node">
+                            <div class="drop-zone photo-zone" data-role="great_grandmother" data-type="photo"></div>
+                            <div class="drop-zone name-zone" data-role="great_grandmother" data-type="name"></div>
+                        </div>
+                    </div>
+
+                    <!-- Level 1: Grandparents -->
+                    <div class="tree-level level-1">
+                        <div class="tree-node">
+                            <div class="drop-zone photo-zone" data-role="grandfather" data-type="photo"></div>
+                            <div class="drop-zone name-zone" data-role="grandfather" data-type="name"></div>
+                        </div>
+                        <div class="tree-node">
+                            <div class="drop-zone photo-zone" data-role="grandmother" data-type="photo"></div>
+                            <div class="drop-zone name-zone" data-role="grandmother" data-type="name"></div>
+                        </div>
+                    </div>
+
+                    <!-- Level 2: Parents & Relatives -->
+                    <div class="tree-level level-2">
+                        <div class="group">
+                            <div class="tree-node">
+                                <div class="drop-zone photo-zone" data-role="father" data-type="photo"></div>
+                                <div class="drop-zone name-zone" data-role="father" data-type="name"></div>
+                            </div>
+                            <div class="tree-node">
+                                <div class="drop-zone photo-zone" data-role="mother" data-type="photo"></div>
+                                <div class="drop-zone name-zone" data-role="mother" data-type="name"></div>
+                            </div>
+                        </div>
+                        <div class="group">
+                            <div class="tree-node">
+                                <div class="drop-zone photo-zone" data-role="uncle" data-type="photo"></div>
+                                <div class="drop-zone name-zone" data-role="uncle" data-type="name"></div>
+                            </div>
+                            <div class="tree-node">
+                                <div class="drop-zone photo-zone" data-role="aunt" data-type="photo"></div>
+                                <div class="drop-zone name-zone" data-role="aunt" data-type="name"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Level 3: Children & Cousins -->
+                    <div class="tree-level level-3">
+                        <div class="group children">
+                            <div class="tree-node thin">
+                                <div class="drop-zone photo-zone" data-role="older_brother" data-type="photo"></div>
+                                <div class="drop-zone name-zone" data-role="older_brother" data-type="name"></div>
+                            </div>
+                            <div class="tree-node thin">
+                                <div class="drop-zone photo-zone" data-role="older_sister" data-type="photo"></div>
+                                <div class="drop-zone name-zone" data-role="older_sister" data-type="name"></div>
+                            </div>
+                            <div class="tree-node thin">
+                                <div class="drop-zone photo-zone" data-role="younger_brother" data-type="photo"></div>
+                                <div class="drop-zone name-zone" data-role="younger_brother" data-type="name"></div>
+                            </div>
+                            <div class="tree-node thin">
+                                <div class="drop-zone photo-zone" data-role="younger_sister" data-type="photo"></div>
+                                <div class="drop-zone name-zone" data-role="younger_sister" data-type="name"></div>
+                            </div>
+                            <div class="tree-node thin">
+                                <div class="drop-zone photo-zone" data-role="baby" data-type="photo"></div>
+                                <div class="drop-zone name-zone" data-role="baby" data-type="name"></div>
+                            </div>
+                        </div>
+                        <div class="group cousins">
+                            <div class="tree-node">
+                                <div class="drop-zone photo-zone" data-role="cousin_male" data-type="photo"></div>
+                                <div class="drop-zone name-zone" data-role="cousin_male" data-type="name"></div>
+                            </div>
+                            <div class="tree-node">
+                                <div class="drop-zone photo-zone" data-role="cousin_female" data-type="photo"></div>
+                                <div class="drop-zone name-zone" data-role="cousin_female" data-type="name"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <svg id="tree-lines"></svg>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <button id="btn-finish" class="primary-btn">Finish & Validate</button>
+            <div id="message-area"></div>
+        </footer>
+    </div>
+
+    <!-- Success Modal/Overlay -->
+    <div id="success-overlay" class="hidden">
+        <div class="modal-content">
+            <span class="emoji">✅</span>
+            <h2>Ajoyib!</h2>
+            <p>Siz shajara daraxtini muvaffaqiyatli yakunladingiz.</p>
+            <p class="tagline">Bu haqiqiy shajara daraxti!</p>
+            <button class="primary-btn" onclick="location.reload()">Boshidan boshlash</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
